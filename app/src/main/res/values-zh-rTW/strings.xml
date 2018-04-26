@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AlfaBridge</string>
+    <!-- Strings related to common string -->
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="terminate">停止</string>
+    <string name="setup">設定</string>
+    <string name="remove">移除</string>
+    <string name="enable">設定</string>
+    <string name="start_disconnect">斷開連線</string>
+    <string name="disconnect">尚未連線</string>
+    <string name="reconnect">重新連線</string>
+    <string name="connected">已連線</string>
+    <string name="disconnect_alert_title">斷開連線</string>
+    <string name="disconnect_alert_message">這項操作會使目前裝置的連線中斷，</string>
+
+    <!-- Strings related to toolbar title -->
+    <string name="toolbar_title_deivce_list">AlfaBridge</string>
+    <string name="toolbar_title_discovery_nearby">搜尋裝置</string>
+    <string name="toolbar_title_device_connected">連結記錄</string>
+
+    <!-- Strings related to discovery fragment -->
+    <string name="discovery_notes">Notes:</string>
+    <string name="discovery_nearby">感應探詢(需靠近裝置)</string>
+    <string name="discovery_direct">連結記錄</string>
+    <string name="discovery_searching">Searching...</string>
+    <string name="discovery_tip_searching">Close to your device</string>
+    <string name="discovery_nearby_hint">Close to your device. If no device is found after a few minutes, try again after rebooting your mobile device.</string>
+    <string name="discovery_direct_hint">If no device is found after a few minutes, please check the power status of device and try again.</string>
+
+    <!-- Strings related to home fragment -->
+    <string name="home_empty_view_message">No connect records, press CONNECT</string>
+    <string name="card_first_time_connection_tip_title">初次連接</string>
+    <string name="card_first_time_connection_tip_desc">由於您尚未連接任何裝置，請點選開始設定</string>
+    <string name="card_first_time_connection_tip_button">開始設定</string>
+
+
+    <!-- Strings related to advertise failure -->
+    <string name="adv_failure_error">系統沒有廣播</string>
+    <string name="adv_failure_reason_internal">錯誤原因: 作業系統核心異常，請關閉APP並重開</string>
+
+
+    <string name="drawer_devices">Bonded Devices</string>
+
+    <string name="connected_cnk_title">Bridge code:</string>
+    <string name="connected_empty_view_message">No deploy records</string>
+
+    <string name="app_descriptor_list_title">已安裝小程序</string>
+    <string name="dev_dash_list_title">控制面板</string>
+    <string name="dev_dash_running_task_title">正在執行的小程序</string>
+    <string name="dev_dash_boot_task_title">開機後執行小程序</string>
+    <string name="dev_dash_space_used_title">儲存空間</string>
+    <string name="dev_dash_bridge_code_title">Bridge code:</string>
+    <string name="deploy_reocrd_list_title">部屬記錄</string>
+
+    <string name="deploy_message">"Are you sure you want to deploy this app?</string>
+
+    <!-- Strings related to menu -->
+    <string name="connect">連結</string>
+    <string name="dev">搜尋裝置</string>
+    <string name="menu_discovery_nearby">discover nearby</string>
+    <string name="title_activity_login">LOGIN</string>
+</resources>

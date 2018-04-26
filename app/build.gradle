@@ -1,0 +1,72 @@
+apply plugin: 'com.android.application'
+apply plugin: 'org.greenrobot.greendao'
+
+android {
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.alfaloop.android.alfabridge"
+        minSdkVersion 22
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+greendao {
+    schemaVersion 1
+    daoPackage 'com.alfaloop.android.alfabridge.db.gen'
+    targetGenDir 'src/main/java'
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+
+    compile 'com.android.support:appcompat-v7:26+'
+    compile 'com.android.support:cardview-v7:26+'
+    compile 'com.android.support:support-compat:26+'
+    compile 'com.android.support:recyclerview-v7:26+'
+    compile "com.android.support:support-core-utils:26+"
+    compile 'com.android.support:support-fragment:26+'
+    compile 'com.android.support:design:26+'
+
+    // Fragmentation
+    compile 'me.yokeyword:fragmentation:1.1.4'
+    compile 'me.yokeyword:fragmentation-core:1.1.4'
+
+    //  Rx dependencies
+    compile 'io.reactivex.rxjava2:rxjava:2.1.3'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'com.github.thepacific:rx2timer:0.0.1'
+
+    // greenrobot
+    compile 'org.greenrobot:eventbus:3.0.0'
+    compile 'org.greenrobot:greendao:3.2.2'
+    compile 'org.greenrobot:greendao-generator:3.2.2'
+    compile 'net.zetetic:android-database-sqlcipher:3.5.2'
+
+    // JSON Parsing
+    compile 'com.google.code.gson:gson:2.6.1'
+
+    compile 'com.koushikdutta.async:androidasync:2.+'
+
+    // UI Component
+    compile 'com.daimajia.swipelayout:library:1.2.0@aar'
+    compile 'com.daimajia.androidanimations:library:1.1.2@aar'
+    compile 'com.daimajia.numberprogressbar:library:1.4@aar'
+    compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
+    compile 'com.github.aakira:expandable-layout:1.6.0@aar'
+    compile 'com.skyfishjy.ripplebackground:library:1.0.1'
+    compile 'com.github.bumptech.glide:glide:3.6.1'
+}

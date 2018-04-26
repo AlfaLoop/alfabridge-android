@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="myPrimaryDarkColor">#0097A7</color>
+    <color name="myPrimaryColor">#00BCD4</color>
+    <color name="myTextIcons">#FFFFFF</color>
+    <color name="myPrimaryText">#212121</color>
+    <color name="mySecondaryText">#757575</color>
+    <color name="myDividerColor">#BDBDBD</color>
+    <color name="myAccentColor">#FFEB3B</color>
+    <color name="myPrimaryCard">#FFFFFF</color>
+    <color name="myPrimaryBackground">#E0E0E0</color>
+    <color name="myPrimaryBanner">#8BC34A</color>
+    <color name="myPrimaryTextLight">#10bcc9</color>
+    <color name="myPrimaryCardSmall">#b5ffe1</color>
+    <color name="myPrimaryWhite">#FEFEFE</color>
+    <color name="myPrimaryAlternativeColor">#FF6D00</color>
+    <color name="myDrawerBackground">#FFF</color>
+    <color name="myWindowBackground">#FFF</color>
+    <color name="myTextPrimaryColor">#60656F</color>
+    <color name="myNavigationColor">#000</color>
+    <color name="myConnectedColor">#15CAB1</color>
+    <color name="myDisconnectedColor">#777</color>
+
+    <!-- Swipe layout -->
+    <color name="backgroundColor">#E8E8E0</color>
+    <color name="backgroundColorPress">#DBDBD3</color>
+
+    <color name="dividers">#DADADA</color>
+    <color name="dark_gray">#4c535b</color>
+    <color name="half_black">#808080</color>
+    <color name="red_press">#990000</color>
+    <color name="red">#FF3B00</color>
+
+    <!-- Discovery nearby layout -->
+    <color name="secondarytext" type="color">#ff808080</color>
+
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+</resources>

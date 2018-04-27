@@ -19,7 +19,7 @@
     <!-- Strings related to toolbar title -->
     <string name="toolbar_title_deivce_list">AlfaBridge</string>
     <string name="toolbar_title_discovery_nearby">搜尋裝置</string>
-    <string name="toolbar_title_device_connected">連結記錄</string>
+    <string name="toolbar_title_device_connected">已連線</string>
 
     <!-- Strings related to discovery fragment -->
     <string name="discovery_notes">Notes:</string>

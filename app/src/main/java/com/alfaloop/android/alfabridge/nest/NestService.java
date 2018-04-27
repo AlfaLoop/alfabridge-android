@@ -28,6 +28,8 @@ import android.os.ParcelUuid;
 import android.util.Log;
 
 import com.alfaloop.android.alfabridge.nest.event.BleCharacteristicWriteRequestEvent;
+import com.alfaloop.android.alfabridge.nest.event.BleConnectionStateChangeEvent;
+import com.alfaloop.android.alfabridge.nest.event.NestDeviceDisconnectEvent;
 import com.alfaloop.android.alfabridge.utility.ParserUtils;
 import com.alfaloop.android.alfabridge.utility.UuidUtils;
 
@@ -97,6 +99,7 @@ public class NestService extends Service {
         if (mBluetoothDevice == null) {
             Log.i(TAG, String.format("mConnectedBluetoothDevice is null"));
         } else {
+            mNestBleGattServer.stop(mBluetoothDevice, isCancelAll);
         }
     }
 
@@ -164,4 +167,14 @@ public class NestService extends Service {
     public void stopDiscovery(){
         mNestBleGattServer.stopAdvertising();
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBleConnectionStateChangeEvent(BleConnectionStateChangeEvent event) {
+        Log.d(TAG, event.toString());
+        if (event.isConnected()){
+            mBluetoothDevice = event.getDevice();
+        } else {
+            mBluetoothDevice = null;
+        }
+    };
 }

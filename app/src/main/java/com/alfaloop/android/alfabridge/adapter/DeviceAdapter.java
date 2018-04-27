@@ -73,7 +73,7 @@ public class DeviceAdapter extends RecyclerSwipeAdapter<DeviceAdapter.MyViewHold
             }
         });
 
-        SimpleDateFormat formatter = new SimpleDateFormat("dd MMM yyyy  hh:mm:ss a");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy MMM dd hh:mm:ss a");
 
         String macAddr = String.format("%s:%s:%s:%s:%s:%s", item.getMacAddr().substring(0 , 2),
                  item.getMacAddr().substring(2 , 4),
@@ -83,7 +83,6 @@ public class DeviceAdapter extends RecyclerSwipeAdapter<DeviceAdapter.MyViewHold
                 item.getMacAddr().substring(10 , 12));
 
         holder.tvName.setText(macAddr);
-
         String date = formatter.format(item.getUpdateDate());
         holder.tvDate.setText(date);
         holder.tvVersion.setText("");
@@ -108,7 +107,6 @@ public class DeviceAdapter extends RecyclerSwipeAdapter<DeviceAdapter.MyViewHold
     class MyViewHolder extends RecyclerView.ViewHolder {
         private SwipeLayout swipeLayout;
         private TextView tvName;
-        private TextView tvPlatform;
         private TextView tvDate;
         private TextView tvVersion;
         private ImageView imvAvatar;
@@ -118,7 +116,6 @@ public class DeviceAdapter extends RecyclerSwipeAdapter<DeviceAdapter.MyViewHold
             swipeLayout = (SwipeLayout) itemView.findViewById(R.id.swipe);
             imvAvatar = (ImageView) itemView.findViewById(R.id.list_image);
             tvName = (TextView) itemView.findViewById(R.id.name);
-            tvPlatform = (TextView) itemView.findViewById(R.id.platform);
             tvVersion = (TextView) itemView.findViewById(R.id.version);
             tvDate=  (TextView) itemView.findViewById(R.id.date);
         }

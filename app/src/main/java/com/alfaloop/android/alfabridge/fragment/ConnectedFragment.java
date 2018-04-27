@@ -23,17 +23,14 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.alfaloop.android.alfabridge.MainActivity;
 import com.alfaloop.android.alfabridge.R;
 import com.alfaloop.android.alfabridge.base.BaseBackFragment;
 import com.alfaloop.android.alfabridge.nest.NestService;
-import com.alfaloop.android.alfabridge.nest.event.NestCorePowerQueryEvent;
-import com.alfaloop.android.alfabridge.nest.event.NestDeviceDisconnectEvent;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 public class ConnectedFragment extends BaseBackFragment {
     public static final String TAG = ConnectedFragment.class.getSimpleName();
@@ -46,11 +43,12 @@ public class ConnectedFragment extends BaseBackFragment {
     private BluetoothDevice mBluetoothDevice;
 
     private Toolbar mToolbar;
-    private LinearLayout mMainContainer;
+    private RelativeLayout mMainContainer;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mNestService = ((MainActivity)_mActivity).getNestService();
     }
 
     @Override
@@ -65,34 +63,48 @@ public class ConnectedFragment extends BaseBackFragment {
         Log.i(TAG, "initView");
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.toolbar_title_device_connected);
-        mToolbar.inflateMenu(R.menu.fragment_devices);
+        mToolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Stop discovery
-                mNestService.disconnect(true);
                 pop();
             }
         });
 
-        mMainContainer = (LinearLayout) view.findViewById(R.id.main_container);
+        mMainContainer = (RelativeLayout) view.findViewById(R.id.main_container);
+        TextView title = (TextView) mMainContainer.findViewById(R.id.title);
+        TextView description = (TextView) mMainContainer.findViewById(R.id.description);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.i(TAG, "onDestroyView");
+
+        // Stop discovery
+        mNestService.disconnect(false);
+        mNestService.stopDiscovery();
     }
 
     public void onSupportInvisible() {
         super.onSupportInvisible();
-        EventBus.getDefault().unregister(this);
+//        EventBus.getDefault().unregister(this);
     }
     @Override
     public void onSupportVisible() {
         super.onSupportVisible();
-        EventBus.getDefault().register(this);
+//        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public boolean onBackPressedSupport() {
+        return super.onBackPressedSupport();
     }
 
     @Override
     public void onLazyInitView(@Nullable Bundle savedInstanceState) {
         super.onLazyInitView(savedInstanceState);
     }
-
 
     @Override
     public void onEnterAnimationEnd(Bundle savedInstanceState) {
@@ -102,13 +114,6 @@ public class ConnectedFragment extends BaseBackFragment {
     private void initDelayView() {
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onNestDeviceDisconnectEvent(NestDeviceDisconnectEvent event) {
-        Log.d(TAG, event.toString());
-    };
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onNestCorePowerQueryEvent(final NestCorePowerQueryEvent event) {
 
-    }
 }

@@ -60,6 +60,11 @@ public class ParserUtils {
 		return macAddr;
 	}
 
+	public static String asHexStringFromAddress(String address) {
+		String[] v = address.split(":");
+		return  String.format("%s%s%s%s%s%s", v[0], v[1], v[2], v[3], v[4], v[5]);
+	}
+
 	public static String convertSemanticVersion(String code) {
 		if (code.length() != 4)
 			return "";

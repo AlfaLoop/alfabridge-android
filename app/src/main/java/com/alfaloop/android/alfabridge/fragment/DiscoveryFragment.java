@@ -37,6 +37,7 @@ import com.alfaloop.android.alfabridge.db.model.ConnectionRecord;
 import com.alfaloop.android.alfabridge.nest.NestService;
 import com.alfaloop.android.alfabridge.nest.event.BleAdvertiseFailureEvent;
 import com.alfaloop.android.alfabridge.nest.event.BleConnectionStateChangeEvent;
+import com.alfaloop.android.alfabridge.utility.ParserUtils;
 import com.skyfishjy.library.RippleBackground;
 
 import org.greenrobot.eventbus.EventBus;
@@ -93,7 +94,6 @@ public class DiscoveryFragment extends BaseBackFragment {
     private void initView(View view) {
         mToolbar = (Toolbar) view.findViewById(R.id.toolbar);
         mToolbar.setTitle(R.string.toolbar_title_discovery_nearby);
-
         mModeText = (TextView) view.findViewById(R.id.discovery_mode);
         mHintText = (TextView) view.findViewById(R.id.discovery_hint);
         mRippleBackground = (RippleBackground) view.findViewById(R.id.ripple_background);
@@ -144,6 +144,7 @@ public class DiscoveryFragment extends BaseBackFragment {
 
     @Override
     public boolean onBackPressedSupport() {
+        Log.i(TAG, "onBackPressedSupport");
         return super.onBackPressedSupport();
     }
 
@@ -173,7 +174,8 @@ public class DiscoveryFragment extends BaseBackFragment {
         BluetoothDevice device = event.getDevice();
         mNestService.setConnectedDevice(device);
         if (event.isConnected()) {
-            ConnectionRecord record = new ConnectionRecord(null, device.getAddress(), new Date());
+            String address = ParserUtils.asHexStringFromAddress(device.getAddress());
+            ConnectionRecord record = new ConnectionRecord(null, address, new Date());
             mConnectionRecordDao.insertOrReplace(record);
             startWithPop(ConnectedFragment.newInstance());
         }

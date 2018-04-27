@@ -190,7 +190,7 @@ public class DevicesFragment extends BaseMainFragment implements Toolbar.OnMenuI
 
         final ConnectionRecord record = mListValues.get(position);
         mNestService = ((MainActivity)_mActivity).getNestService();
-        startWithPop(DiscoveryFragment.newInstance(record.getMacAddr()));
+        start(DiscoveryFragment.newInstance(record.getMacAddr()));
     }
 
     @Override

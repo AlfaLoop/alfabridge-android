@@ -170,6 +170,7 @@ public class DevicesFragment extends BaseMainFragment implements Toolbar.OnMenuI
 
     private void initDelayView() {
         Log.i(TAG, "initDelayView");
+
     }
 
     @Override

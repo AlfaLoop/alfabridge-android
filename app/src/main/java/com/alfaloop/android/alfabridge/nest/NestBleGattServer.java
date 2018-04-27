@@ -31,6 +31,7 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.alfaloop.android.alfabridge.nest.event.BleAdvertiseFailureEvent;
 import com.alfaloop.android.alfabridge.nest.event.BleCharacteristicWriteRequestEvent;
@@ -60,9 +61,6 @@ public class NestBleGattServer {
     private boolean isAdvertising = false;
     private NestBleGattService mNestBleGattService = null;
 
-    /* Collection of notification subscribers */
-    private HashSet<BluetoothDevice> mRegisteredDevices = new HashSet<>();
-
     // Wrtie queue
     private Queue<byte[]>  mWriteQueue = new LinkedList<byte[]>();
     private boolean isWriting = false;
@@ -73,7 +71,7 @@ public class NestBleGattServer {
         this.mListener = listener;
         mBluetoothManager = (BluetoothManager) this.mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-        this.mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
+        mAdvertiser = mBluetoothAdapter.getBluetoothLeAdvertiser();
     }
 
     public boolean start(AdvertiseSettings settings, AdvertiseData data) {
@@ -90,23 +88,21 @@ public class NestBleGattServer {
         for (BluetoothGattService service : gattServices) {
             if (service.getUuid() == NestBleGattService.NEST_SERVICE_UUID) {
                 Log.e(TAG, "Another Nest-GATT service is already being served by this device");
-                //close();
-
                 // Start advertising.
                 if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
                     mAdvertiser.startAdvertising(settings, data, mAdvertisingCallback);
                     isAdvertising = true;
+                    return true;
                 } else {
                     Log.e(TAG, "multiple advertisiment not supported");
+                    return false;
                 }
-                return false;
             }
         }
 
         mNestBleGattService = new NestBleGattService();
         if (!mBluetoothGattServer.addService(mNestBleGattService.getService())) {
             Log.e(TAG, "Nest-GATT service registration failed");
-            //close();
             return false;
         }
 
@@ -116,15 +112,17 @@ public class NestBleGattServer {
             isAdvertising = true;
         } else {
             Log.e(TAG, "multiple advertisiment not supported");
+            return false;
         }
         return true;
     }
 
     public void stopAdvertising() {
-        if (mBluetoothAdapter.isEnabled() && mAdvertiser != null) {
+        if (mBluetoothAdapter.isEnabled() && mAdvertiser != null && isAdvertising) {
             // If stopAdvertising() gets called before close() a null
             // pointer exception is raised.
             mAdvertiser.stopAdvertising(mAdvertisingCallback);
+            isAdvertising = false;
         }
     }
 
@@ -151,6 +149,7 @@ public class NestBleGattServer {
 
         if (mBluetoothAdapter.isMultipleAdvertisementSupported()) {
             mAdvertiser.stopAdvertising(mAdvertisingCallback);
+            isAdvertising = false;
         } else {
             Log.e(TAG, "multiple advertisiment not supported");
         }
@@ -169,6 +168,7 @@ public class NestBleGattServer {
             // If stopAdvertising() gets called before close() a null
             // pointer exception is raised.
             mAdvertiser.stopAdvertising(mAdvertisingCallback);
+            isAdvertising = false;
         }
 
         // TODO: onGattFinished event
@@ -178,16 +178,12 @@ public class NestBleGattServer {
     }
 
     public void writeInboundCharacteristic(BluetoothDevice device, byte[] value) {
-        Log.d(TAG, "Write Inbound" + ParserUtils.parse(value));
+        Log.d(TAG, "writeInboundCharacteristic " + ParserUtils.parse(value));
         mWriteQueue.add(value);
         writeNextValueFromQueue(device);
     }
 
     private void writeNextValueFromQueue(BluetoothDevice device) {
-//        if (mRegisteredDevices.isEmpty()) {
-//            Log.i(TAG, "No subscribers registered");
-//            return;
-//        }
         if (isWriting) {
             return;
         }
@@ -197,10 +193,6 @@ public class NestBleGattServer {
         isWriting = true;
         byte[] value = mWriteQueue.poll();
         Log.d(TAG, "Write Inbound from Queue" + ParserUtils.parse(value));
-
-//        BluetoothGattCharacteristic inboundCharacteristic =
-//                mNestBleGattService.getService().getCharacteristic(NestBleGattService.NEST_INBOUND_CHARACTERISTIC_UUID);
-//        inboundCharacteristic.setValue((byte[])value);
 
         mNestBleGattService.getInboundCharacteristic().setValue((byte[])value);
         if (mBluetoothGattServer != null && mNestBleGattService.getInboundCharacteristic() != null && device != null)
@@ -219,22 +211,18 @@ public class NestBleGattServer {
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             super.onConnectionStateChange(device, status, newState);
+            Log.v(TAG, String.format("onConnectionStateChange: Devices Connected %d", mBluetoothManager.getConnectedDevices(BluetoothGattServer.GATT).size() ));
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 if (newState == BluetoothGatt.STATE_CONNECTED) {
-                    Log.v(TAG, "Connected to device: " + device.getAddress());
-                    mRegisteredDevices.add(device);
+                    Log.v(TAG, "onConnectionStateChange: Connected to device: " + device.getAddress());
                     EventBus.getDefault().post(new BleConnectionStateChangeEvent(true, device));
-
                 } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
-                    Log.v(TAG, "Disconnected from device");
-                    mRegisteredDevices.remove(device);
+                    Log.v(TAG, "onConnectionStateChange: Disconnected from device");
                     EventBus.getDefault().post(new BleConnectionStateChangeEvent(false, device));
                 }
             } else {
-                mRegisteredDevices.remove(device);
-                Log.e(TAG, "Error when connecting: " + status);
+                Log.e(TAG, "onConnectionStateChange: Error when connecting status: " + status);
             }
-            Log.v(TAG, String.format("Devices Connected %d", mBluetoothManager.getConnectedDevices(BluetoothGattServer.GATT).size() ));
         }
 
         @Override
@@ -243,7 +231,7 @@ public class NestBleGattServer {
                                                  boolean preparedWrite, boolean responseNeeded,
                                                  int offset, byte[] value) {
             super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
-            Log.v(TAG, "Characteristic Write request: " + Arrays.toString(value));
+            Log.v(TAG, "onCharacteristicWriteRequest: " + Arrays.toString(value));
             int status = BluetoothGatt.GATT_SUCCESS;
             if (offset != 0) {
                 status = BluetoothGatt.GATT_INVALID_OFFSET;
@@ -273,7 +261,7 @@ public class NestBleGattServer {
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset,
                                                 BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
-            Log.d(TAG, "Device tried to read characteristic: " + characteristic.getUuid());
+            Log.d(TAG, "onCharacteristicReadRequest: " + characteristic.getUuid());
             Log.d(TAG, "Value: " + Arrays.toString(characteristic.getValue()));
             if (offset != 0) {
                 if (mBluetoothGattServer != null)
@@ -286,19 +274,11 @@ public class NestBleGattServer {
                         offset, characteristic.getValue());
         }
 
-//    @Override
-//    public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
-////        super.onExecuteWrite(device, requestId, execute);
-//        Log.v(TAG, String.format("%s Request %d: executeWrite(%s) is not expected!",
-//                device, requestId, execute));
-////        mBluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, new byte[0]);
-//    }
-
         @Override
         public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset,
                                             BluetoothGattDescriptor descriptor) {
             super.onDescriptorReadRequest(device, requestId, offset, descriptor);
-            Log.d(TAG, "Device tried to read descriptor: " + descriptor.getUuid());
+            Log.d(TAG, "onDescriptorReadRequest: " + descriptor.getUuid());
             Log.d(TAG, "Value: " + Arrays.toString(descriptor.getValue()));
 
             if (offset != 0) {
@@ -317,7 +297,7 @@ public class NestBleGattServer {
                                              byte[] value) {
             super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded,
                     offset, value);
-            Log.v(TAG, "Descriptor Write Request " + descriptor.getUuid() + " " + Arrays.toString(value));
+            Log.v(TAG, "onDescriptorWriteRequest " + descriptor.getUuid() + " " + Arrays.toString(value));
             int status = BluetoothGatt.GATT_SUCCESS;
             if (NestBleGattService.NEST_INBOUND_READ_CHARACTERISTIC_DESC.equals(descriptor.getUuid())) {
                 BluetoothGattCharacteristic characteristic = descriptor.getCharacteristic();

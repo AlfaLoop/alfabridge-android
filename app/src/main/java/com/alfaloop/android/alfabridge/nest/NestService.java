@@ -35,6 +35,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.HashSet;
 
 import io.reactivex.subjects.PublishSubject;
 
@@ -45,7 +46,8 @@ public class NestService extends Service {
 
     // Nest Bluetooth instance
     private NestBleGattServer mNestBleGattServer;
-    private NestBluetoothDevice mNestBluetoothDevice;
+    private HashSet<BluetoothDevice> mRegisteredDevices = new HashSet<>();
+
     private BluetoothDevice mBluetoothDevice;
 
     public class LocalBinder extends Binder {
@@ -57,9 +59,8 @@ public class NestService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
         EventBus.getDefault().register(this);
-        mNestBluetoothDevice = null;
+        mBluetoothDevice = null;
 
         // register callback
         mNestBleGattServer = new NestBleGattServer(this, new NestBleGattServer.Listener() {
@@ -76,11 +77,8 @@ public class NestService extends Service {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
 //        AirLogClient.getInstance().close();
-        if (mNestBleGattServer != null) {
-            Log.v(TAG, "close ble gatt server");
-            if (mNestBluetoothDevice != null)
-                mNestBleGattServer.close(mNestBluetoothDevice.getBleDevice());
-            mNestBleGattServer = null;
+        if (mBluetoothDevice != null) {
+            mBluetoothDevice = null;
         }
     }
 
@@ -96,11 +94,9 @@ public class NestService extends Service {
     }
 
     public void disconnect(boolean isCancelAll) {
-        if (mNestBluetoothDevice == null) {
+        if (mBluetoothDevice == null) {
             Log.i(TAG, String.format("mConnectedBluetoothDevice is null"));
         } else {
-            Log.i(TAG, String.format("Disconnect with %s", mNestBluetoothDevice.getBleDevice().getAddress()));
-            mNestBleGattServer.stop(mNestBluetoothDevice.getBleDevice(), isCancelAll);
         }
     }
 
@@ -112,7 +108,7 @@ public class NestService extends Service {
         return mBluetoothDevice;
     }
 
-    public void startDirectFieldDiscovery(String macAddr){
+    public boolean startDirectFieldDiscovery(String macAddr){
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
                 .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
@@ -134,10 +130,10 @@ public class NestService extends Service {
                 .setIncludeDeviceName( false )
                 .addServiceUuid( pUuid )
                 .build();
-        mNestBleGattServer.start(settings, data);
+        return mNestBleGattServer.start(settings, data);
     }
 
-    public void startNearFieldDiscovery(){
+    public boolean startNearFieldDiscovery(){
         AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
                 .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
@@ -152,15 +148,17 @@ public class NestService extends Service {
                 .addServiceUuid( pUuid )
                 .build();
 
-        mNestBleGattServer.start(settings, data);
+        return mNestBleGattServer.start(settings, data);
     }
 
-    public void startDeviceDiscovery(String macAddress){
+    public boolean startDeviceDiscovery(String macAddress){
+        boolean result = false;
         if (macAddress.equals("")) {
-            startNearFieldDiscovery();
+            result = startNearFieldDiscovery();
         } else {
-            startDirectFieldDiscovery(macAddress);
+            result = startDirectFieldDiscovery(macAddress);
         }
+        return result;
     }
 
     public void stopDiscovery(){

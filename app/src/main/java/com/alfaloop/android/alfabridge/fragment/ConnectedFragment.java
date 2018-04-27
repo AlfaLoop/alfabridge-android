@@ -29,7 +29,19 @@ import android.widget.TextView;
 import com.alfaloop.android.alfabridge.MainActivity;
 import com.alfaloop.android.alfabridge.R;
 import com.alfaloop.android.alfabridge.base.BaseBackFragment;
+import com.alfaloop.android.alfabridge.db.model.ConnectionRecord;
+import com.alfaloop.android.alfabridge.listener.TcpBridgeListener;
 import com.alfaloop.android.alfabridge.nest.NestService;
+import com.alfaloop.android.alfabridge.nest.NestTcpBridger;
+import com.alfaloop.android.alfabridge.nest.event.BleCharacteristicWriteRequestEvent;
+import com.alfaloop.android.alfabridge.nest.event.BleConnectionStateChangeEvent;
+import com.alfaloop.android.alfabridge.utility.ParserUtils;
+import com.alfaloop.android.alfabridge.utility.SystemUtils;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.Date;
 
 
 public class ConnectedFragment extends BaseBackFragment {
@@ -40,10 +52,13 @@ public class ConnectedFragment extends BaseBackFragment {
 
     // Nest Service
     private NestService mNestService;
-    private BluetoothDevice mBluetoothDevice;
-
+    private boolean isConnected = false;
     private Toolbar mToolbar;
     private RelativeLayout mMainContainer;
+    private NestTcpBridger mNestTcpBridger;
+
+    private TextView mDescText;
+    private TextView mTitleText;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,9 +86,37 @@ public class ConnectedFragment extends BaseBackFragment {
             }
         });
 
+        mToolbar.setTitle(mNestService.getConnectedDevice().getAddress());
+
         mMainContainer = (RelativeLayout) view.findViewById(R.id.main_container);
-        TextView title = (TextView) mMainContainer.findViewById(R.id.title);
-        TextView description = (TextView) mMainContainer.findViewById(R.id.description);
+        mTitleText = (TextView) mMainContainer.findViewById(R.id.title);
+        mDescText = (TextView) mMainContainer.findViewById(R.id.description);
+
+        String title = String.format("%s %s:%d", getResources().getString(R.string.listen_tcp),
+                SystemUtils.getDeviceIpAddress(), NestTcpBridger.BRIDGE_PORT);
+        mTitleText.setText(title);
+
+        mNestTcpBridger = new NestTcpBridger(new TcpBridgeListener() {
+            @Override
+            public void onMessageReceived(String hex) {
+                Log.i(TAG, "onMessageReceived: " + hex);
+                mNestService.sendMessageByInboundChannel(hex);
+            }
+
+            @Override
+            public void onConnected() {
+                Log.i(TAG, "onConnected: ");
+                mDescText.setText(R.string.connected);
+                isConnected = true;
+            }
+
+            @Override
+            public void onDisconnect() {
+                Log.i(TAG, "onDisconnect: ");
+                mDescText.setText(R.string.disconnect);
+                isConnected = false;
+            }
+        });
     }
 
     @Override
@@ -84,16 +127,7 @@ public class ConnectedFragment extends BaseBackFragment {
         // Stop discovery
         mNestService.disconnect(false);
         mNestService.stopDiscovery();
-    }
-
-    public void onSupportInvisible() {
-        super.onSupportInvisible();
-//        EventBus.getDefault().unregister(this);
-    }
-    @Override
-    public void onSupportVisible() {
-        super.onSupportVisible();
-//        EventBus.getDefault().register(this);
+        mNestTcpBridger.close();
     }
 
     @Override
@@ -101,19 +135,19 @@ public class ConnectedFragment extends BaseBackFragment {
         return super.onBackPressedSupport();
     }
 
-    @Override
-    public void onLazyInitView(@Nullable Bundle savedInstanceState) {
-        super.onLazyInitView(savedInstanceState);
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBleConnectionStateChangeEvent(final BleConnectionStateChangeEvent event) {
+        if (!event.isConnected()) {
+            pop();
+        }
     }
 
-    @Override
-    public void onEnterAnimationEnd(Bundle savedInstanceState) {
-        initDelayView();
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBleCharacteristicWriteRequestEvent(final BleCharacteristicWriteRequestEvent event) {
+        Log.v(TAG, event.toString());
+        byte[] value = event.getValue();
+        if (isConnected) {
+            mNestTcpBridger.sendHexString(ParserUtils.bytesToHex(value));
+        }
     }
-
-    private void initDelayView() {
-    }
-
-
-
 }

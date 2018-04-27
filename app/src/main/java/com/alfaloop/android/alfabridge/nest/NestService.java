@@ -27,9 +27,7 @@ import android.os.Looper;
 import android.os.ParcelUuid;
 import android.util.Log;
 
-import com.alfaloop.android.alfabridge.nest.event.BleCharacteristicWriteRequestEvent;
 import com.alfaloop.android.alfabridge.nest.event.BleConnectionStateChangeEvent;
-import com.alfaloop.android.alfabridge.nest.event.NestDeviceDisconnectEvent;
 import com.alfaloop.android.alfabridge.utility.ParserUtils;
 import com.alfaloop.android.alfabridge.utility.UuidUtils;
 
@@ -89,22 +87,12 @@ public class NestService extends Service {
         return mBinder;
     }
 
-    @Subscribe(threadMode = ThreadMode.BACKGROUND)
-    public void onBleCharacteristicWriteRequestEvent(final BleCharacteristicWriteRequestEvent event) {
-        Log.v(TAG, event.toString());
-        byte[] value = event.getValue();
-    }
-
     public void disconnect(boolean isCancelAll) {
         if (mBluetoothDevice == null) {
             Log.i(TAG, String.format("mConnectedBluetoothDevice is null"));
         } else {
             mNestBleGattServer.stop(mBluetoothDevice, isCancelAll);
         }
-    }
-
-    public void setConnectedDevice(BluetoothDevice device) {
-        this.mBluetoothDevice = device;
     }
 
     public BluetoothDevice getConnectedDevice() {
@@ -168,13 +156,23 @@ public class NestService extends Service {
         mNestBleGattServer.stopAdvertising();
     }
 
+    public void sendMessageByInboundChannel(String hex) {
+        if (mBluetoothDevice != null) {
+            byte[] cmd = ParserUtils.hexStringToByteArray(hex);
+            mNestBleGattServer.writeInboundCharacteristic(mBluetoothDevice, cmd);
+        }
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBleConnectionStateChangeEvent(BleConnectionStateChangeEvent event) {
         Log.d(TAG, event.toString());
         if (event.isConnected()){
+            this.stopDiscovery();
             mBluetoothDevice = event.getDevice();
         } else {
             mBluetoothDevice = null;
         }
     };
+
+
 }

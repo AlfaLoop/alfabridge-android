@@ -12,8 +12,11 @@
     <string name="disconnect">Disconnect</string>
     <string name="reconnect">Reconnect</string>
     <string name="connected">Connected</string>
+    <string name="listen_tcp">Listening</string>
     <string name="disconnect_alert_title">Disconnect?</string>
     <string name="disconnect_alert_message">This operation will disconnect the current connection. Still yes?</string>
+
+
 
     <!-- Strings related to toolbar title -->
     <string name="toolbar_title_device_list">AlfaBridge</string>

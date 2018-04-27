@@ -13,6 +13,7 @@
     <string name="disconnect">尚未連線</string>
     <string name="reconnect">重新連線</string>
     <string name="connected">已連線</string>
+    <string name="listen_tcp">等待連線</string>
     <string name="disconnect_alert_title">斷開連線</string>
     <string name="disconnect_alert_message">這項操作會使目前裝置的連線中斷，</string>
 

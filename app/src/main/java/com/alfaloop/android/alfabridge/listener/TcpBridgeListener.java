@@ -1,5 +1,5 @@
 /**
- * © Copyright 2016 YoKey
+ * © Copyright AlfaLoop Technology Co., Ltd. 2018
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-package com.alfaloop.android.alfabridge.base;
+package com.alfaloop.android.alfabridge.listener;
 
-import android.support.v7.widget.Toolbar;
-import android.view.View;
-
-import com.alfaloop.android.alfabridge.R;
-
-
-public class BaseCloseFragment extends MySupportFragment {
-
-    protected void initToolbarNav(Toolbar toolbar) {
-        toolbar.setNavigationIcon(R.drawable.ic_action_close);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pop();
-            }
-        });
-    }
+public interface TcpBridgeListener {
+    void onMessageReceived(String hex);
+    void onConnected();
+    void onDisconnect();
 }

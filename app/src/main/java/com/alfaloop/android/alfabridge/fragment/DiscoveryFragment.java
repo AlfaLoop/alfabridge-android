@@ -172,7 +172,6 @@ public class DiscoveryFragment extends BaseBackFragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBleConnectionStateChangeEvent(final BleConnectionStateChangeEvent event) {
         BluetoothDevice device = event.getDevice();
-        mNestService.setConnectedDevice(device);
         if (event.isConnected()) {
             String address = ParserUtils.asHexStringFromAddress(device.getAddress());
             ConnectionRecord record = new ConnectionRecord(null, address, new Date());

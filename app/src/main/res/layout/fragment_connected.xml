@@ -11,26 +11,18 @@
         android:id="@+id/main_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp">
-        <ImageView
-            android:id="@+id/image"
-            android:src="@drawable/ic_shortcut_bluetooth_searching"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginTop="20dp"
-            android:layout_alignParentTop="true"
-            android:layout_centerInParent="true"
-            android:layout_marginBottom="10dip"/>
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_below="@+id/image"
-            android:textSize="26sp"
-            android:layout_marginBottom="5dip"
+          <TextView
+              android:id="@+id/title"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:layout_centerInParent="true"
+            android:textSize="22sp"
+              android:gravity="center_horizontal"
+              android:layout_marginBottom="5dip"
             android:textColor="@color/myTextPrimaryColor"
             android:textStyle="bold" />
         <TextView
@@ -41,6 +33,6 @@
             android:layout_centerInParent="true"
             android:textColor="@color/myTextPrimaryColor"
             android:layout_marginBottom="20dip"
-            android:textSize="18sp" />
+            android:textSize="20sp" />
     </RelativeLayout>
 </LinearLayout>

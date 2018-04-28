@@ -35,9 +35,12 @@ import com.alfaloop.android.alfabridge.nest.NestService;
 import com.alfaloop.android.alfabridge.nest.NestTcpBridger;
 import com.alfaloop.android.alfabridge.nest.event.BleCharacteristicWriteRequestEvent;
 import com.alfaloop.android.alfabridge.nest.event.BleConnectionStateChangeEvent;
+import com.alfaloop.android.alfabridge.nest.event.TcpConnectionEvent;
+import com.alfaloop.android.alfabridge.nest.event.TcpMessageReceivedEvent;
 import com.alfaloop.android.alfabridge.utility.ParserUtils;
 import com.alfaloop.android.alfabridge.utility.SystemUtils;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -95,39 +98,30 @@ public class ConnectedFragment extends BaseBackFragment {
         String title = String.format("%s %s:%d", getResources().getString(R.string.listen_tcp),
                 SystemUtils.getDeviceIpAddress(), NestTcpBridger.BRIDGE_PORT);
         mTitleText.setText(title);
+        mDescText.setText(R.string.disconnect);
 
-        mNestTcpBridger = new NestTcpBridger(new TcpBridgeListener() {
-            @Override
-            public void onMessageReceived(String hex) {
-                Log.i(TAG, "onMessageReceived: " + hex);
-                mNestService.sendMessageByInboundChannel(hex);
-            }
-
-            @Override
-            public void onConnected() {
-                Log.i(TAG, "onConnected: ");
-                mDescText.setText(R.string.connected);
-                isConnected = true;
-            }
-
-            @Override
-            public void onDisconnect() {
-                Log.i(TAG, "onDisconnect: ");
-                mDescText.setText(R.string.disconnect);
-                isConnected = false;
-            }
-        });
+        mNestTcpBridger = new NestTcpBridger();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.i(TAG, "onDestroyView");
-
         // Stop discovery
         mNestService.disconnect(false);
         mNestService.stopDiscovery();
         mNestTcpBridger.close();
+    }
+
+    @Override
+    public void onSupportVisible() {
+        super.onSupportVisible();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onSupportInvisible() {
+        super.onSupportInvisible();
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
@@ -148,6 +142,23 @@ public class ConnectedFragment extends BaseBackFragment {
         byte[] value = event.getValue();
         if (isConnected) {
             mNestTcpBridger.sendHexString(ParserUtils.bytesToHex(value));
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onTcpMessageReceivedEvent(final TcpMessageReceivedEvent event) {
+        Log.i(TAG, "onMessageReceived: " + event.getMessage());
+        mNestService.sendMessageByInboundChannel(event.getMessage());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onTcpConnectionEvent(final TcpConnectionEvent event) {
+        if (event.isConnect()) {
+            mDescText.setText(R.string.connected);
+            isConnected = true;
+        } else {
+            mDescText.setText(R.string.disconnect);
+            isConnected = false;
         }
     }
 }

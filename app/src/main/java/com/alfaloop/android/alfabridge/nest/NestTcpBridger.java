@@ -18,48 +18,47 @@ package com.alfaloop.android.alfabridge.nest;
 import android.os.AsyncTask;
 import android.os.Looper;
 import android.util.Log;
-
-import com.alfaloop.android.alfabridge.fragment.DevicesFragment;
-import com.alfaloop.android.alfabridge.listener.TcpBridgeListener;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.logging.Handler;
+
+import com.alfaloop.android.alfabridge.nest.event.TcpConnectionEvent;
+import com.alfaloop.android.alfabridge.nest.event.TcpMessageReceivedEvent;
+
+import org.greenrobot.eventbus.EventBus;
 
 public class NestTcpBridger {
     private static final String TAG = NestTcpBridger.class.getSimpleName();
 
     static final public int BRIDGE_PORT = 5897;
-    private TcpBridgeListener mTcpBridgeListener;
     private ServerSocket mServerSocket;
     private Socket mSocket;
     private BufferedReader mBufferedReader;
     private BufferedWriter mBufferedWriter;
-    private android.os.Handler mHandler = new android.os.Handler(Looper.getMainLooper());
+    private TCPServerAsyncTask mTCPServerAsyncTask;
 
-    public NestTcpBridger(TcpBridgeListener listener) {
-
-        mTcpBridgeListener = listener;
-
+    public NestTcpBridger() {
         // Start the TCP Server
-        TCPServerAsyncTask task = new TCPServerAsyncTask();
-        task.execute(new Void[0]);
+        mTCPServerAsyncTask = new TCPServerAsyncTask();
+        mTCPServerAsyncTask.execute(new Void[0]);
     }
 
     public void close() {
         try {
             if (mSocket != null)
                 mSocket.close();
+            if (mServerSocket != null)
+                mServerSocket.close();
+            if (mBufferedReader != null)
                 mBufferedReader.close();
+            if (mBufferedWriter != null)
                 mBufferedWriter.close();
-            mServerSocket.close();
+
+            mTCPServerAsyncTask.cancel(true);
         }
         catch(Exception e)
         {
@@ -94,9 +93,7 @@ public class NestTcpBridger {
         @Override
         protected void onCancelled() {
             running = false;
-            if (mTcpBridgeListener != null) {
-                mTcpBridgeListener.onDisconnect();
-            }
+            EventBus.getDefault().post(new TcpConnectionEvent(false));
         }
 
         @Override
@@ -107,13 +104,9 @@ public class NestTcpBridger {
             }
             while (running) {
                 try {
-                    if (mTcpBridgeListener != null) {
-                        mTcpBridgeListener.onDisconnect();
-                    }
+                    EventBus.getDefault().post(new TcpConnectionEvent(false));
                     mSocket = mServerSocket.accept();
-                    if (mTcpBridgeListener != null) {
-                        mTcpBridgeListener.onConnected();
-                    }
+                    EventBus.getDefault().post(new TcpConnectionEvent(true));
                     mBufferedReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
                     mBufferedWriter = new BufferedWriter(new OutputStreamWriter(mSocket.getOutputStream()));
                     disconnect = false;
@@ -125,15 +118,7 @@ public class NestTcpBridger {
                         } else {
                             if (line != null) {
                                 final String message = line;
-                                mHandler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Log.i(TAG, message);
-                                        if (mTcpBridgeListener != null) {
-                                            mTcpBridgeListener.onMessageReceived(message);
-                                        }
-                                    }
-                                });
+                                EventBus.getDefault().post(new TcpMessageReceivedEvent(message));
                             }
                         }
                     }

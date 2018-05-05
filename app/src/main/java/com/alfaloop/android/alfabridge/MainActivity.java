@@ -44,14 +44,8 @@ public class MainActivity  extends MySupportActivity
         implements  BaseMainFragment.OnFragmentOpenDrawerListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-
-    private static List<MenuItem> mMenuItems;
-
     private DrawerLayout mDrawer;
     private NavigationView mNavigationView;
-    private ActionBarDrawerToggle mDrawerToggle;
-    private TextView mNavNameTextView;
-    private TextView mNavEmailTextView;
 
     // NestService
     private NestService mNestService = null;
@@ -87,21 +81,11 @@ public class MainActivity  extends MySupportActivity
     @Override
     protected void onStop() {
         super.onStop();
-        // Remove Listener
-        //   FirebaseAuth auth = FirebaseAuth.getInstance();
-        // auth.removeAuthStateListener(mFBAuthListener);
     }
-
-    /**
-     * 设置动画，也可以使用setFragmentAnimator()设置
-     */
     @Override
     public FragmentAnimator onCreateFragmentAnimator() {
-        // 设置默认Fragment动画  默认竖向(和安卓5.0以上的动画相同)
         return super.onCreateFragmentAnimator();
-        // 设置横向(和安卓4.x动画相同)
 //        return new DefaultHorizontalAnimator();
-        // 设置自定义动画
 //        return new FragmentAnimator(enter,exit,popEnter,popExit);
     }
 
@@ -109,12 +93,7 @@ public class MainActivity  extends MySupportActivity
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawer.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
-//        mNavigationView.setNavigationItemSelectedListener(this);
-//        mNavigationView.setCheckedItem(R.id.nav_devices);
-
         View header = mNavigationView.getHeaderView(0);
-        mNavNameTextView = (TextView) header.findViewById(R.id.nav_name_text);
-        mNavEmailTextView = (TextView) header.findViewById(R.id.nav_email_text);
         header.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -134,17 +113,10 @@ public class MainActivity  extends MySupportActivity
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
-            ISupportFragment topFragment = getTopFragment();
-            // 首頁的Fragment
-            if (topFragment instanceof BaseMainFragment) {
-//                mNavigationView.setCheckedItem(R.id.nav_devices);
-            }
             if (getSupportFragmentManager().getBackStackEntryCount() > 1) {
                 pop();
             } else {
-                // PASS: 上ㄧ頁  (已無Fragment可pop) : into background?
                 moveTaskToBack(true);
-//                finish();
             }
         }
     }
@@ -159,9 +131,6 @@ public class MainActivity  extends MySupportActivity
         }
     }
 
-    /**
-     * Nest Service connection
-     */
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName className,

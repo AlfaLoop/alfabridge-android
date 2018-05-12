@@ -101,8 +101,6 @@ public class DiscoveryFragment extends BaseBackFragment {
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Stop discovery
-                mNestService.stopDiscovery();
                 pop();
             }
         });
@@ -126,6 +124,7 @@ public class DiscoveryFragment extends BaseBackFragment {
     public void onDestroyView() {
         super.onDestroyView();
         Log.i(TAG, "onDestroyView");
+        mNestService.stopDiscovery();
     }
 
     @Override
@@ -182,6 +181,8 @@ public class DiscoveryFragment extends BaseBackFragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onBleAdvertiseFailureEvent(final BleAdvertiseFailureEvent event) {
+        Log.d(TAG, event.toString());
+
         if (event.getErrCode() == 3) {
             mNestService = ((MainActivity)_mActivity).getNestService();
             mNestService.stopDiscovery();

@@ -67,6 +67,7 @@ public class ConnectedFragment extends BaseBackFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mNestService = ((MainActivity)_mActivity).getNestService();
+        mNestTcpBridger = NestTcpBridger.getInstance();
     }
 
     @Override
@@ -99,28 +100,28 @@ public class ConnectedFragment extends BaseBackFragment {
                 SystemUtils.getDeviceIpAddress(), NestTcpBridger.BRIDGE_PORT);
         mTitleText.setText(title);
         mDescText.setText(R.string.disconnect);
-
-        mNestTcpBridger = new NestTcpBridger();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Stop discovery
-        mNestService.disconnect(false);
-        mNestService.stopDiscovery();
-        mNestTcpBridger.close();
     }
 
     @Override
     public void onSupportVisible() {
         super.onSupportVisible();
+        mNestTcpBridger.setWatching(true);
         EventBus.getDefault().register(this);
     }
 
     @Override
     public void onSupportInvisible() {
         super.onSupportInvisible();
+        // Stop discovery
+        mNestService.disconnect(false);
+        mNestService.stopDiscovery();
+        mNestTcpBridger.setWatching(true);
+        mNestTcpBridger.setWatching(false);
         EventBus.getDefault().unregister(this);
     }
 

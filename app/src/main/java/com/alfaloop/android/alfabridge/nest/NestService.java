@@ -27,7 +27,10 @@ import android.os.Looper;
 import android.os.ParcelUuid;
 import android.util.Log;
 
+import com.alfaloop.android.alfabridge.R;
 import com.alfaloop.android.alfabridge.nest.event.BleConnectionStateChangeEvent;
+import com.alfaloop.android.alfabridge.nest.event.TcpConnectionEvent;
+import com.alfaloop.android.alfabridge.nest.event.TcpMessageReceivedEvent;
 import com.alfaloop.android.alfabridge.utility.ParserUtils;
 import com.alfaloop.android.alfabridge.utility.UuidUtils;
 
@@ -46,10 +49,8 @@ public class NestService extends Service {
 
     // Nest Bluetooth instance
     private NestBleGattServer mNestBleGattServer;
-    private HashSet<BluetoothDevice> mRegisteredDevices = new HashSet<>();
-
+    private NestTcpBridger mNestTcpBridger;
     private BluetoothDevice mBluetoothDevice;
-
     public class LocalBinder extends Binder {
         public NestService getService() {
             return NestService.this;
@@ -70,13 +71,15 @@ public class NestService extends Service {
                 mNestBleGattServer = null;   // close() not needed here
             }
         });
+
+        mNestTcpBridger =  NestTcpBridger.getInstance();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
-//        AirLogClient.getInstance().close();
+        mNestTcpBridger.close();
         if (mBluetoothDevice != null) {
             mBluetoothDevice = null;
         }
@@ -173,6 +176,4 @@ public class NestService extends Service {
             mBluetoothDevice = null;
         }
     };
-
-
 }

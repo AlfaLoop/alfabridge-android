@@ -11,6 +11,9 @@ AlfaBridge
  - [RxJava (& RxAndroid)](https://github.com/ReactiveX/RxJava)
 	 - Easily threading and network calls abstraction
 
+## Maintainers
+* Chun Ting Ding(xiaodingtw) <xiaoding.tw@gmail.com>
+
 
 ## License ##
 
@@ -25,3 +28,4 @@ AlfaBridge
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+

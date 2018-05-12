@@ -32,12 +32,21 @@ import org.greenrobot.eventbus.EventBus;
 public class NestTcpBridger {
     private static final String TAG = NestTcpBridger.class.getSimpleName();
 
+    private static NestTcpBridger instance;
+    public static synchronized NestTcpBridger getInstance(){
+        if(instance == null){
+            instance = new NestTcpBridger();
+        }
+        return instance;
+    }
+
     static final public int BRIDGE_PORT = 5897;
     private ServerSocket mServerSocket;
     private Socket mSocket;
     private BufferedReader mBufferedReader;
     private BufferedWriter mBufferedWriter;
     private TCPServerAsyncTask mTCPServerAsyncTask;
+    private boolean mWatching = false;
 
     public NestTcpBridger() {
         // Start the TCP Server
@@ -62,6 +71,10 @@ public class NestTcpBridger {
         {
             e.printStackTrace();
         }
+    }
+
+    public void setWatching(boolean watch){
+        this.mWatching = watch;
     }
 
     public void sendHexString(String str)
@@ -90,8 +103,8 @@ public class NestTcpBridger {
 
         @Override
         protected void onCancelled() {
+//            EventBus.getDefault().post(new TcpConnectionEvent(false));
             running = false;
-            EventBus.getDefault().post(new TcpConnectionEvent(false));
         }
 
         @Override
@@ -102,9 +115,11 @@ public class NestTcpBridger {
             }
             while (running) {
                 try {
-                    EventBus.getDefault().post(new TcpConnectionEvent(false));
+                    if (mWatching)
+                        EventBus.getDefault().post(new TcpConnectionEvent(false));
                     mSocket = mServerSocket.accept();
-                    EventBus.getDefault().post(new TcpConnectionEvent(true));
+                    if (mWatching)
+                        EventBus.getDefault().post(new TcpConnectionEvent(true));
                     mBufferedReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
                     mBufferedWriter = new BufferedWriter(new OutputStreamWriter(mSocket.getOutputStream()));
                     disconnect = false;
@@ -116,7 +131,8 @@ public class NestTcpBridger {
                         } else {
                             if (line != null) {
                                 final String message = line;
-                                EventBus.getDefault().post(new TcpMessageReceivedEvent(message));
+                                if (mWatching)
+                                    EventBus.getDefault().post(new TcpMessageReceivedEvent(message));
                             }
                         }
                     }

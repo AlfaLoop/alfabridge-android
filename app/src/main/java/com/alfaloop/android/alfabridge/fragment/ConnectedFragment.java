@@ -86,7 +86,8 @@ public class ConnectedFragment extends BaseBackFragment {
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pop();
+                mNestService.disconnect(false);
+//                pop();
             }
         });
 
@@ -110,19 +111,19 @@ public class ConnectedFragment extends BaseBackFragment {
     @Override
     public void onSupportVisible() {
         super.onSupportVisible();
-        mNestTcpBridger.setWatching(true);
         EventBus.getDefault().register(this);
+
+        mNestTcpBridger.setWatching(true);
     }
 
     @Override
     public void onSupportInvisible() {
         super.onSupportInvisible();
-        // Stop discovery
-        mNestService.disconnect(false);
-        mNestService.stopDiscovery();
-        mNestTcpBridger.setWatching(true);
-        mNestTcpBridger.setWatching(false);
         EventBus.getDefault().unregister(this);
+
+        // Stop discovery
+        mNestTcpBridger.setWatching(false);
+        mNestService.stopDiscovery();
     }
 
     @Override

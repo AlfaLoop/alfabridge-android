@@ -128,20 +128,6 @@ public class DiscoveryFragment extends BaseBackFragment {
     }
 
     @Override
-    public void onSupportVisible() {
-        super.onSupportVisible();
-        Log.i(TAG, "onSupportVisible");
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onSupportInvisible() {
-        super.onSupportInvisible();
-        Log.i(TAG, "onSupportInvisible");
-        EventBus.getDefault().unregister(this);
-    }
-
-    @Override
     public boolean onBackPressedSupport() {
         Log.i(TAG, "onBackPressedSupport");
         return super.onBackPressedSupport();
@@ -165,40 +151,36 @@ public class DiscoveryFragment extends BaseBackFragment {
         mRippleBackground.startRippleAnimation();
 
         // Start Discovery
-        mNestService.startDeviceDiscovery(mMacAddress);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onBleConnectionStateChangeEvent(final BleConnectionStateChangeEvent event) {
-        BluetoothDevice device = event.getDevice();
-        if (event.isConnected()) {
-            String address = ParserUtils.asHexStringFromAddress(device.getAddress());
-            ConnectionRecord record = new ConnectionRecord(null, address, new Date());
-            mConnectionRecordDao.insertOrReplace(record);
-            startWithPop(ConnectedFragment.newInstance());
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onBleAdvertiseFailureEvent(final BleAdvertiseFailureEvent event) {
-        Log.d(TAG, event.toString());
-
-        if (event.getErrCode() == 3) {
-            mNestService = ((MainActivity)_mActivity).getNestService();
-            mNestService.stopDiscovery();
-            startDiscoveryNearby();
-        } else {
-            new AlertDialog.Builder(_mActivity)
-                    .setTitle(R.string.adv_failure_error)
-                    .setMessage(R.string.adv_failure_reason_internal + " Error type: " + event.getErrMessage())
-                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            getActivity().finish();
-                            System.exit(0);
-                        }
-                    })
-                    .show();
-        }
+        mNestService.startDeviceDiscovery(mMacAddress, new NestService.OnDiscoveryListener() {
+            @Override
+            public void onConnected(BluetoothDevice device) {
+                String address = ParserUtils.asHexStringFromAddress(device.getAddress());
+                ConnectionRecord record = new ConnectionRecord(null, address, new Date());
+                mConnectionRecordDao.insertOrReplace(record);
+                mNestService.stopDiscovery();
+                startWithPop(ConnectedFragment.newInstance());
+            }
+            @Override
+            public void onFailed(BleAdvertiseFailureEvent event) {
+                Log.d(TAG, event.toString());
+                if (event.getErrCode() == 3) {
+                    mNestService = ((MainActivity)_mActivity).getNestService();
+                    mNestService.stopDiscovery();
+                    startDiscoveryNearby();
+                } else {
+                    new AlertDialog.Builder(_mActivity)
+                            .setTitle(R.string.adv_failure_error)
+                            .setMessage(R.string.adv_failure_reason_internal + " Error type: " + event.getErrMessage())
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    getActivity().finish();
+                                    System.exit(0);
+                                }
+                            })
+                            .show();
+                }
+            }
+        });
     }
 }

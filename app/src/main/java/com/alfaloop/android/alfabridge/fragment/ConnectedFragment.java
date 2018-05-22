@@ -86,8 +86,9 @@ public class ConnectedFragment extends BaseBackFragment {
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mNestService.unRegisterTcpBridgeListener();
                 mNestService.disconnect(false);
-//                pop();
+                pop();
             }
         });
 
@@ -111,56 +112,40 @@ public class ConnectedFragment extends BaseBackFragment {
     @Override
     public void onSupportVisible() {
         super.onSupportVisible();
-        EventBus.getDefault().register(this);
+//        EventBus.getDefault().register(this);
+        mNestService.registerTcpBridgeListener(new NestService.OnTcpBridgeListener() {
+            @Override
+            public void onConnected() {
+                mDescText.setText(R.string.connected);
+                isConnected = true;
+            }
 
+            @Override
+            public void onDisconnect() {
+                mDescText.setText(R.string.disconnect);
+                isConnected = false;
+            }
+
+            @Override
+            public void onBleDisconnect() {
+                pop();
+            }
+        });
         mNestTcpBridger.setWatching(true);
     }
 
     @Override
     public void onSupportInvisible() {
         super.onSupportInvisible();
-        EventBus.getDefault().unregister(this);
+//        EventBus.getDefault().unregister(this);
+        mNestService.unRegisterTcpBridgeListener();
 
         // Stop discovery
         mNestTcpBridger.setWatching(false);
-        mNestService.stopDiscovery();
     }
 
     @Override
     public boolean onBackPressedSupport() {
         return super.onBackPressedSupport();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onBleConnectionStateChangeEvent(final BleConnectionStateChangeEvent event) {
-        if (!event.isConnected()) {
-            pop();
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onBleCharacteristicWriteRequestEvent(final BleCharacteristicWriteRequestEvent event) {
-        Log.v(TAG, event.toString());
-        byte[] value = event.getValue();
-        if (isConnected) {
-            mNestTcpBridger.sendHexString(ParserUtils.bytesToHex(value));
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onTcpMessageReceivedEvent(final TcpMessageReceivedEvent event) {
-        Log.i(TAG, "onMessageReceived: " + event.getMessage());
-        mNestService.sendMessageByInboundChannel(event.getMessage());
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onTcpConnectionEvent(final TcpConnectionEvent event) {
-        if (event.isConnect()) {
-            mDescText.setText(R.string.connected);
-            isConnected = true;
-        } else {
-            mDescText.setText(R.string.disconnect);
-            isConnected = false;
-        }
     }
 }

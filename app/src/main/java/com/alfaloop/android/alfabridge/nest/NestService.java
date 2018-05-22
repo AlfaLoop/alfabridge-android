@@ -19,15 +19,20 @@ import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.ParcelUuid;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
+import com.alfaloop.android.alfabridge.MainActivity;
 import com.alfaloop.android.alfabridge.R;
+import com.alfaloop.android.alfabridge.nest.event.BleAdvertiseFailureEvent;
+import com.alfaloop.android.alfabridge.nest.event.BleCharacteristicWriteRequestEvent;
 import com.alfaloop.android.alfabridge.nest.event.BleConnectionStateChangeEvent;
 import com.alfaloop.android.alfabridge.nest.event.TcpConnectionEvent;
 import com.alfaloop.android.alfabridge.nest.event.TcpMessageReceivedEvent;
@@ -45,7 +50,21 @@ import io.reactivex.subjects.PublishSubject;
 public class NestService extends Service {
     private static final String TAG = NestService.class.getSimpleName();
 
+    public interface OnDiscoveryListener {
+        void onConnected(BluetoothDevice device);
+        void onFailed(final BleAdvertiseFailureEvent event);
+    }
+
+    public interface OnTcpBridgeListener {
+        void onConnected();
+        void onDisconnect();
+        void onBleDisconnect();
+    }
+
     private final IBinder mBinder = new LocalBinder();
+
+    private OnDiscoveryListener mDiscoveryListener = null;
+    private OnTcpBridgeListener mTcpBridgeListener = null;
 
     // Nest Bluetooth instance
     private NestBleGattServer mNestBleGattServer;
@@ -88,6 +107,14 @@ public class NestService extends Service {
     @Override
     public IBinder onBind(final Intent intent) {
         return mBinder;
+    }
+
+    public void registerTcpBridgeListener(OnTcpBridgeListener listener) {
+        this.mTcpBridgeListener = listener;
+    }
+
+    public void unRegisterTcpBridgeListener() {
+        this.mTcpBridgeListener = null;
     }
 
     public void disconnect(boolean isCancelAll) {
@@ -145,8 +172,10 @@ public class NestService extends Service {
         return mNestBleGattServer.start(settings, data);
     }
 
-    public boolean startDeviceDiscovery(String macAddress){
+    public boolean startDeviceDiscovery(String macAddress, OnDiscoveryListener listener){
         boolean result = false;
+        mDiscoveryListener = listener;
+
         if (macAddress.equals("")) {
             result = startNearFieldDiscovery();
         } else {
@@ -156,6 +185,7 @@ public class NestService extends Service {
     }
 
     public void stopDiscovery(){
+        mDiscoveryListener = null;
         mNestBleGattServer.stopAdvertising();
     }
 
@@ -170,10 +200,50 @@ public class NestService extends Service {
     public void onBleConnectionStateChangeEvent(BleConnectionStateChangeEvent event) {
         Log.d(TAG, event.toString());
         if (event.isConnected()){
-            this.stopDiscovery();
             mBluetoothDevice = event.getDevice();
+            if (mDiscoveryListener != null) {
+                mDiscoveryListener.onConnected(mBluetoothDevice);
+            }
         } else {
             mBluetoothDevice = null;
+            if (mTcpBridgeListener != null) {
+                mTcpBridgeListener.onBleDisconnect();
+            }
         }
     };
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBleAdvertiseFailureEvent(final BleAdvertiseFailureEvent event) {
+        Log.d(TAG, event.toString());
+        if (mDiscoveryListener != null) {
+            mDiscoveryListener.onFailed(event);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onBleCharacteristicWriteRequestEvent(final BleCharacteristicWriteRequestEvent event) {
+        Log.v(TAG, event.toString());
+        byte[] value = event.getValue();
+        if (mBluetoothDevice != null) {
+            mNestTcpBridger.sendHexString(ParserUtils.bytesToHex(value));
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onTcpMessageReceivedEvent(final TcpMessageReceivedEvent event) {
+        Log.i(TAG, "onMessageReceived: " + event.getMessage());
+        sendMessageByInboundChannel(event.getMessage());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onTcpConnectionEvent(final TcpConnectionEvent event) {
+        if (mTcpBridgeListener != null) {
+            if (event.isConnect()) {
+                mTcpBridgeListener.onConnected();
+            } else {
+                mTcpBridgeListener.onDisconnect();
+            }
+
+        }
+    }
 }

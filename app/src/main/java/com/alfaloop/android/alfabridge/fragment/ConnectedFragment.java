@@ -88,6 +88,7 @@ public class ConnectedFragment extends BaseBackFragment {
             public void onClick(View v) {
                 mNestService.unRegisterTcpBridgeListener();
                 mNestService.disconnect(false);
+                mNestTcpBridger.setWatching(false);
                 pop();
             }
         });
@@ -112,7 +113,6 @@ public class ConnectedFragment extends BaseBackFragment {
     @Override
     public void onSupportVisible() {
         super.onSupportVisible();
-//        EventBus.getDefault().register(this);
         mNestService.registerTcpBridgeListener(new NestService.OnTcpBridgeListener() {
             @Override
             public void onConnected() {
@@ -128,6 +128,9 @@ public class ConnectedFragment extends BaseBackFragment {
 
             @Override
             public void onBleDisconnect() {
+                mNestService.unRegisterTcpBridgeListener();
+                mNestTcpBridger.setWatching(false);
+
                 pop();
             }
         });
@@ -137,10 +140,7 @@ public class ConnectedFragment extends BaseBackFragment {
     @Override
     public void onSupportInvisible() {
         super.onSupportInvisible();
-//        EventBus.getDefault().unregister(this);
         mNestService.unRegisterTcpBridgeListener();
-
-        // Stop discovery
         mNestTcpBridger.setWatching(false);
     }
 

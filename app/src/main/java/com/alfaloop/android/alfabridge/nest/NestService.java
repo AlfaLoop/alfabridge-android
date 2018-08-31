@@ -220,7 +220,7 @@ public class NestService extends Service {
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void onBleCharacteristicWriteRequestEvent(final BleCharacteristicWriteRequestEvent event) {
         Log.v(TAG, event.toString());
         byte[] value = event.getValue();

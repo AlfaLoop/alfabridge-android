@@ -18,7 +18,7 @@
     <string name="disconnect_alert_message">這項操作會使目前裝置的連線中斷，</string>
 
     <!-- Strings related to toolbar title -->
-    <string name="toolbar_title_deivce_list">AlfaBridge</string>
+    <string name="toolbar_title_deivce_list">連線記錄</string>
     <string name="toolbar_title_discovery_nearby">搜尋裝置</string>
     <string name="toolbar_title_device_connected">已連線</string>
 
@@ -63,4 +63,5 @@
     <string name="dev">搜尋裝置</string>
     <string name="menu_discovery_nearby">discover nearby</string>
     <string name="title_activity_login">LOGIN</string>
+    <string name="toolbar_title_device_list">裝置列表</string>
 </resources>

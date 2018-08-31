@@ -63,4 +63,5 @@
     <string name="dev">dev</string>
     <string name="menu_discovery_nearby">discover nearby</string>
     <string name="title_activity_login">LOGIN</string>
+    <string name="toolbar_title_deivce_list">Device list</string>
 </resources>
